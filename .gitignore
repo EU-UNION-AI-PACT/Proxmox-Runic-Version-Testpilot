@@ -1,0 +1,28 @@
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.swp
+*~
+.DS_Store
+
+# Backup files
+*.bak
+*.backup
+
+# Editor files
+.vscode/
+.idea/
+*.sublime-*
+
+# User-specific
+config.local
+secrets.yml
+*.secret
+
+# Environment
+.env
+.env.local
+.env.*.local

@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ᚠᚢᚦᚨᚱᚲ - Proxmox Scripts Runic Viewer</title>
+    
+    <!-- Google Fonts - Noto Sans Runic -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Runic&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e4e4e4;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 3em;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #d4af37, #f4e4c1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-family: 'Noto Sans Runic', sans-serif;
+            text-shadow: 0 0 30px rgba(212, 175, 55, 0.5);
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #a0a0a0;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 12px 25px;
+            font-size: 1em;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            box-shadow: 0 4px 15px 0 rgba(212, 175, 55, 0.3);
+        }
+
+        #umschalt-knopf {
+            background: linear-gradient(45deg, #d4af37, #c99c2e);
+            color: #1a1a2e;
+        }
+
+        #umschalt-knopf:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px 0 rgba(212, 175, 55, 0.5);
+        }
+
+        .code-container {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 25px;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            position: relative;
+            overflow: auto;
+            max-height: 70vh;
+        }
+
+        .versteckt {
+            display: none !important;
+        }
+
+        /* Original-Version Styling */
+        #original-ansicht pre {
+            font-family: 'Courier New', monospace;
+            color: #00ff00;
+            font-size: 0.95em;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        /* Runen-Version Styling */
+        #runen-ansicht {
+            font-family: 'Noto Sans Runic', 'Segoe UI Symbol', monospace;
+            color: #d4af37;
+            font-size: 1.4em;
+            line-height: 3;
+            letter-spacing: 5px;
+            text-shadow: 0 0 15px rgba(212, 175, 55, 0.7),
+                         0 0 30px rgba(212, 175, 55, 0.4);
+            font-weight: 400;
+        }
+
+        .runen-zeile {
+            margin-bottom: 20px;
+            padding: 15px;
+            border-left: 4px solid #d4af37;
+            background: rgba(212, 175, 55, 0.08);
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .runen-zeile:hover {
+            background: rgba(212, 175, 55, 0.15);
+            border-left-width: 6px;
+            padding-left: 20px;
+        }
+
+        .version-label {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            background: rgba(212, 175, 55, 0.2);
+            padding: 5px 15px;
+            border-radius: 5px;
+            font-size: 0.85em;
+            font-weight: 600;
+            color: #d4af37;
+        }
+
+        .info-box {
+            background: rgba(212, 175, 55, 0.1);
+            border-left: 4px solid #d4af37;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+
+        .info-box h3 {
+            color: #d4af37;
+            margin-bottom: 10px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 1.8em;
+            }
+            
+            .code-container {
+                padding: 15px;
+                max-height: 60vh;
+            }
+        }
+
+        /* Scroll-Styling */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(212, 175, 55, 0.5);
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(212, 175, 55, 0.7);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>ᚠᚢᚦᚨᚱᚲ ᛗᚨᚷᛁᚲ</h1>
+        <p class="subtitle">Proxmox Scripts - Dual Layer Viewer</p>
+
+        <div class="info-box">
+            <h3>🔮 Über dieses Tool</h3>
+            <p>Dieses interaktive Tool zeigt Proxmox-Installationsskripte in zwei Ansichten:</p>
+            <ul style="margin-left: 20px; margin-top: 10px;">
+                <li><strong>Original:</strong> Funktionaler Bash-Code</li>
+                <li><strong>Runen:</strong> Dekorative Futhark-Darstellung</li>
+            </ul>
+        </div>
+
+        <div class="info-box" style="border-left-color: #4a9eff; background: rgba(74, 158, 255, 0.1); margin-top: 20px;">
+            <h3 style="color: #4a9eff;">✨ Mission & Werte</h3>
+            <p style="line-height: 1.8; color: #e4e4e4;">
+                Dieses Projekt wurde erschaffen, um <strong>Frieden</strong>, <strong>Freiheit</strong>, 
+                <strong>Nächstenliebe</strong>, <strong>Harmonie</strong>, <strong>Vergebung</strong> 
+                und <strong>Loyalität</strong> in der Open-Source-Community zu fördern.
+                <br><br>
+                Wissen soll frei geteilt werden, Technologie soll Menschen verbinden, 
+                und gemeinsam schaffen wir eine bessere digitale Zukunft für alle.
+            </p>
+            <p style="line-height: 2; color: #f4e4c1; margin-top: 20px; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 8px;">
+                <strong>💭 Wahre Weisheit:</strong><br>
+                Kriege beginnen bei dir, nicht bei anderen. Jeder, der zur Waffe greift, 
+                glaubt im Recht zu sein. Doch niemand, der Frieden vom Herzen trägt, 
+                ist Teil dieses Systems.
+                <br><br>
+                <em style="color: #d4af37;">Frieden ist keine äußere Handlung – er ist eine innere Haltung.</em>
+            </p>
+            <p style="text-align: center; margin-top: 20px; font-size: 1.3em; color: #d4af37; font-family: 'Noto Sans Runic', sans-serif;">
+                ᚠᚱᛁᛖᛞᛖ • ᚠᚱᛖᛁᚺᛖᛁᛏ • ᛚᛁᛖᛒᛖ • ᚺᚨᚱᛗᛟᚾᛁᛖ • ᚡᛖᚱᚷᛖᛒᚢᚾᚷ • ᛚᛟᛃᚨᛚᛁᛏᚨᛏ
+            </p>
+            <p style="text-align: center; margin-top: 10px; font-size: 0.9em; color: #a0a0a0; font-style: italic;">
+                Friede • Freiheit • Liebe • Harmonie • Vergebung • Loyalität
+            </p>
+        </div>
+
+        <div class="controls">
+            <select id="script-selector" style="padding: 12px 20px; font-size: 1em; border-radius: 8px; background: rgba(212, 175, 55, 0.2); color: #d4af37; border: 1px solid #d4af37; cursor: pointer;">
+                <option value="databases">12-install-databases.sh</option>
+                <option value="media">13-install-media-stack.sh</option>
+                <option value="security">14-install-security-stack.sh</option>
+                <option value="homelab">15-install-homelab-essentials.sh</option>
+            </select>
+            <button id="umschalt-knopf">🔄 Zur Runen-Version umschalten</button>
+        </div>
+
+        <!-- Original-Ansicht -->
+        <div id="original-ansicht" class="code-container">
+            <span class="version-label">📄 ORIGINAL CODE</span>
+            <pre>#!/usr/bin/env bash
+# Proxmox Community Scripts - Database Installer
+# Interactive installer for 12 database systems
+
+set -e
+
+YW="\033[33m"
+BL="\033[36m"
+RD="\033[01;31m"
+GN="\033[1;92m"
+CL="\033[m"
+
+msg_info() {
+    echo -e "${BL}[INFO]${CL} ${GN}$1${CL}"
+}
+
+msg_error() {
+    echo -e "${RD}[ERROR]${CL} $1"
+}
+
+header_info() {
+    cat <<"EOF"
+    ____        __             __                     
+   / __ \____ _/ /_____ ______/ /_  ____ _________  __
+  / / / / __ `/ __/ __ `/ ___/ __ \/ __ `/ ___/ _ \/ /
+ / /_/ / /_/ / /_/ /_/ / /__/ /_/ / /_/ /__  /  __/__ 
+/_____/\__,_/\__/\__,_/\___/_.___/\__,_/____/\___/____/
+                                                       
+ Community Scripts - Database Installation
+EOF
+}
+
+clear
+header_info
+echo ""
+
+msg_info "Available Databases:"
+echo ""
+echo "  1) PostgreSQL        - Powerful relational DB"
+echo "  2) MariaDB           - MySQL fork, very popular"
+echo "  3) MongoDB           - NoSQL document database"
+echo "  4) Redis             - In-memory key-value store"
+echo "  5) InfluxDB          - Time-series database"
+echo "  6) Neo4j             - Graph database"
+echo "  7) Apache CouchDB    - NoSQL with HTTP API"
+echo "  8) SQL Server 2022   - Microsoft SQL Server"
+echo "  9) PocketBase        - SQLite backend (Go)"
+echo " 10) Meilisearch       - Search engine"
+echo " 11) MinIO             - S3-compatible storage"
+echo " 12) Garage            - Distributed S3 storage"
+echo ""
+
+read -rp "Your choice: " choice
+
+install_postgresql() {
+    msg_info "Installing PostgreSQL..."
+    bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/ct/postgresql.sh)"
+}
+
+case $choice in
+    1) install_postgresql ;;
+    2) install_mariadb ;;
+    3) install_mongodb ;;
+    *) msg_error "Invalid selection!" ;;
+esac
+
+echo ""
+msg_info "Installation complete!"</pre>
+        </div>
+
+        <!-- Runen-Ansicht -->
+        <div id="runen-ansicht" class="code-container versteckt">
+            <span class="version-label">✨ RUNIC LAYER</span>
+            <div class="runen-zeile">ᚠ ᚢ ᚦ ᚨ ᚱ ᚲ   ᛗ ᚨ ᚷ ᛁ ᚲ   ᛁ ᚾ ᛁ ᛏ ᛁ ᚨ ᛚ ᛁ ᛉ ᚨ ᛏ ᛁ ᛟ ᚾ</div>
+            <div class="runen-zeile">ᛈ ᚱ ᛟ ᚲ ᛗ ᛟ ᚲ ᛋ   ᚲ ᛟ ᛗ ᛗ ᚢ ᚾ ᛁ ᛏ ᛃ   ᛋ ᚲ ᚱ ᛁ ᛈ ᛏ ᛋ</div>
+            <div class="runen-zeile">ᛞ ᚨ ᛏ ᚨ ᛒ ᚨ ᛋ ᛖ   ᛁ ᚾ ᛋ ᛏ ᚨ ᛚ ᛚ ᛖ ᚱ</div>
+            <br>
+            <div class="runen-zeile">ᛋ ᛖ ᛏ   ᛖ ᚱ ᚱ ᛟ ᚱ   ᛖ ᚲ ᛁ ᛏ</div>
+            <br>
+            <div class="runen-zeile">ᛗ ᛋ ᚷ   ᛁ ᚾ ᚠ ᛟ :</div>
+            <div class="runen-zeile">  ᛖ ᚲ ᚺ ᛟ   ᛁ ᚾ ᚠ ᛟ   ᛗ ᛖ ᛋ ᛋ ᚨ ᚷ ᛖ</div>
+            <br>
+            <div class="runen-zeile">ᚺ ᛖ ᚨ ᛞ ᛖ ᚱ   ᛁ ᚾ ᚠ ᛟ :</div>
+            <div class="runen-zeile">  ᚨ ᛋ ᚲ ᛁ ᛁ   ᚨ ᚱ ᛏ</div>
+            <br>
+            <div class="runen-zeile">ᚨ ᚡ ᚨ ᛁ ᛚ ᚨ ᛒ ᛚ ᛖ   ᛞ ᚨ ᛏ ᚨ ᛒ ᚨ ᛋ ᛖ ᛋ :</div>
+            <div class="runen-zeile">  ᛈ ᛟ ᛋ ᛏ ᚷ ᚱ ᛖ ᛋ ᛩ ᛚ</div>
+            <div class="runen-zeile">  ᛗ ᚨ ᚱ ᛁ ᚨ ᛞ ᛒ</div>
+            <div class="runen-zeile">  ᛗ ᛟ ᚾ ᚷ ᛟ ᛞ ᛒ</div>
+            <div class="runen-zeile">  ᚱ ᛖ ᛞ ᛁ ᛋ</div>
+            <div class="runen-zeile">  ᛁ ᚾ ᚠ ᛚ ᚢ ᚲ ᛞ ᛒ</div>
+            <div class="runen-zeile">  ᚾ ᛖ ᛟ ᛫ ᛃ</div>
+            <br>
+            <div class="runen-zeile">ᛁ ᚾ ᛋ ᛏ ᚨ ᛚ ᛚ   ᛈ ᛟ ᛋ ᛏ ᚷ ᚱ ᛖ ᛋ ᛩ ᛚ :</div>
+            <div class="runen-zeile">  ᛒ ᚨ ᛋ ᚺ   ᚲ ᚢ ᚱ ᛚ   ᛁ ᚾ ᛋ ᛏ ᚨ ᛚ ᛚ</div>
+            <br>
+            <div class="runen-zeile">ᛁ ᚾ ᛋ ᛏ ᚨ ᛚ ᛚ ᚨ ᛏ ᛁ ᛟ ᚾ   ᚲ ᛟ ᛗ ᛈ ᛚ ᛖ ᛏ ᛖ !</div>
+        </div>
+    </div>
+
+    <script>
+        // ═══════════════════════════════════════════════════════════════
+        // SCRIPT DATABASE
+        // ═══════════════════════════════════════════════════════════════
+        
+        const scripts = {
+            databases: `#!/usr/bin/env bash
+
+# Proxmox Community Scripts - Datenbank Installation
+# Quelle: https://github.com/community-scripts/ProxmoxVE
+
+set -e
+
+YW="\\033[33m"
+BL="\\033[36m"
+RD="\\033[01;31m"
+GN="\\033[1;92m"
+CL="\\033[m"
+
+msg_info() {
+    echo -e "\${BL}[INFO]\${CL} \${GN}$1\${CL}"
+}
+
+header_info() {
+    cat <<"EOF"
+    ____        __             __                     
+   / __ \\____ _/ /_____ ______/ /_  ____ _________  __
+  / / / / __ \`/ __/ __ \`/ ___/ __ \\/ __ \`/ ___/ _ \\/ /
+ / /_/ / /_/ / /_/ /_/ / /__/ /_/ / /_/ /__  /  __/__ 
+/_____/\\__,_/\\__/\\__,_/\\___/_.___/\\__,_/____/\\___/____/
+                                                       
+ Community Scripts - Datenbank Installation
+EOF
+}
+
+clear
+header_info
+echo ""
+
+msg_info "Verfügbare Datenbanken:"
+echo "  1) PostgreSQL  2) MariaDB  3) MongoDB"
+echo "  4) Redis       5) InfluxDB 6) Neo4j"
+echo "  7) CouchDB     8) SQL Server 2022"
+echo "  9) PocketBase 10) Meilisearch"
+echo " 11) MinIO      12) Garage"
+
+read -rp "Deine Auswahl: " choice
+
+install_postgresql() {
+    bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/ct/postgresql.sh)"
+}
+
+case $choice in
+    1) install_postgresql ;;
+    2) install_mariadb ;;
+    *) echo "Installation complete!" ;;
+esac`,
+
+            media: `#!/usr/bin/env bash
+
+# Proxmox Community Scripts - Complete Media Stack (Arr Apps)
+# Installiert den kompletten Media Management Stack
+
+set -e
+
+header_info() {
+    cat <<"EOF"
+    __  ___         ___        _____ __             __  
+   /  |/  /__  ____/ (_)___ _ / ___// /_____ ______/ /__
+  / /|_/ / _ \\/ __  / / __ \`/ \\__ \\/ __/ __ \`/ ___/ /_/
+ / /  / /  __/ /_/ / / /_/ / ___/ / /_/ /_/ / /__/ ,<   
+/_/  /_/\\___/\\__,_/_/\\__,_/ /____/\\__/\\__,_/\\___/_/|_|  
+ Arr Stack - Complete Media Management
+EOF
+}
+
+clear
+header_info
+
+echo "Verfügbare Optionen:"
+echo "  1) Complete Stack - Alle wichtigen Arr Apps"
+echo "  2) Core Stack     - Radarr, Sonarr, Prowlarr"
+echo "  3) Music Stack    - Lidarr + Support"
+
+read -rp "Deine Auswahl: " choice
+
+install_radarr() {
+    bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/ct/radarr.sh)"
+}
+
+install_prowlarr() {
+    bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/ct/prowlarr.sh)"
+}
+
+case $choice in
+    1) echo "Installing Complete Stack..." ;;
+    2) echo "Installing Core Stack..." ;;
+    *) echo "Done!" ;;
+esac`,
+
+            security: `#!/usr/bin/env bash
+
+# Proxmox Community Scripts - Security & Authentication Stack
+
+set -e
+
+header_info() {
+    cat <<"EOF"
+   _____                      _ __         
+  / ___/___  _______  _______(_) /___  __  
+  \\__ \\/ _ \\/ ___/ / / / ___/ / __/ / / /  
+ ___/ /  __/ /__/ /_/ / /  / / /_/ /_/ /   
+/____/\\___/\\___/\\__,_/_/  /_/\\__/\\__, /    
+                                /____/     
+ Security & Authentication Stack
+EOF
+}
+
+clear
+header_info
+
+echo "Verfügbare Security Stacks:"
+echo "  1) Complete Security Stack"
+echo "     (Vaultwarden + Authelia + 2FAuth + LLDAP)"
+echo "  2) Password Manager (Vaultwarden)"
+echo "  3) SSO & Auth (Authelia + LLDAP)"
+echo "  4) DNS Security (Pi-hole + AdGuard)"
+
+read -rp "Deine Auswahl: " choice
+
+install_vaultwarden() {
+    bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/ct/vaultwarden.sh)"
+}
+
+install_authelia() {
+    bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/ct/authelia.sh)"
+}
+
+case $choice in
+    1) echo "Installing Complete Security..." ;;
+    2) install_vaultwarden ;;
+    *) echo "Installation complete!" ;;
+esac`,
+
+            homelab: `#!/usr/bin/env bash
+
+# Proxmox Community Scripts - Homelab Essentials
+
+set -e
+
+header_info() {
+    cat <<"EOF"
+    __  __                     __          __  
+   / / / /___  ____ ___  ___  / /___ _____/ /_ 
+  / /_/ / __ \\/ __ \`__ \\/ _ \\/ / __ \`/ __  /  
+ / __  / /_/ / / / / / /  __/ / /_/ / /_/ /   
+/_/ /_/\\____/_/ /_/ /_/\\___/_/\\__,_/\\__,_/    
+ Essential Homelab Stack
+EOF
+}
+
+clear
+header_info
+
+echo "Homelab Essential Stacks:"
+echo "  1) Complete Homelab"
+echo "     Docker + NPM + Pi-hole + Grafana"
+echo "  2) Container Platform (Docker + Dockge)"
+echo "  3) Network Stack (Pi-hole + NPM + Cloudflared)"
+echo "  4) Monitoring (Grafana + InfluxDB)"
+
+read -rp "Deine Auswahl: " choice
+
+install_docker() {
+    bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/ct/docker.sh)"
+}
+
+install_npm() {
+    bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/ct/nginxproxymanager.sh)"
+}
+
+case $choice in
+    1) echo "Installing Complete Homelab..." ;;
+    2) echo "Installing Container Platform..." ;;
+    *) echo "Setup complete!" ;;
+esac`
+        };
+
+        // ═══════════════════════════════════════════════════════════════
+        // FUTHARK RUNE CONVERTER - Automatic Text to Runes
+        // ═══════════════════════════════════════════════════════════════
+        
+        const runeMap = {
+            'a': 'ᚨ', 'b': 'ᛒ', 'c': 'ᚲ', 'd': 'ᛞ', 'e': 'ᛖ',
+            'f': 'ᚠ', 'g': 'ᚷ', 'h': 'ᚺ', 'i': 'ᛁ', 'j': 'ᛃ',
+            'k': 'ᚲ', 'l': 'ᛚ', 'm': 'ᛗ', 'n': 'ᚾ', 'o': 'ᛟ',
+            'p': 'ᛈ', 'q': 'ᛩ', 'r': 'ᚱ', 's': 'ᛋ', 't': 'ᛏ',
+            'u': 'ᚢ', 'v': 'ᚡ', 'w': 'ᚹ', 'x': 'ᚲ ᛋ', 'y': 'ᛃ',
+            'z': 'ᛉ', ' ': '   ', '\n': '\n', '\t': '  ',
+            '0': 'ᚬ', '1': 'ᛁ', '2': 'ᛁ ᛁ', '3': 'ᛁ ᛁ ᛁ',
+            '4': 'ᛁ ᚡ', '5': 'ᚡ', '6': 'ᚡ ᛁ', '7': 'ᚡ ᛁ ᛁ',
+            '8': 'ᚡ ᛁ ᛁ ᛁ', '9': 'ᛁ ᚲ',
+            '.': '᛫', ',': '᛬', ':': '᛬', ';': '᛬',
+            '!': '᛭', '?': '᛭', '-': '᛬', '_': '᛬',
+            '(': '᛬', ')': '᛬', '[': '᛬', ']': '᛬',
+            '{': '᛬', '}': '᛬', '<': '᛬', '>': '᛬',
+            '/': '᛫', '\\': '᛫', '|': '᛫', '=': '᛬',
+            '+': '᛬', '*': '᛬', '&': '᛬', '%': '᛬',
+            '$': '᛬', '#': '᛬', '@': '᛬', '"': '᛬',
+            "'": '᛬', '`': '᛬', '~': '᛬', '^': '᛬'
+        };
+
+        function textToRunes(text) {
+            let result = '';
+            for (let char of text.toLowerCase()) {
+                result += runeMap[char] || char;
+            }
+            return result;
+        }
+
+        function convertCodeToRunes(code) {
+            const lines = code.split('\n');
+            let runicHTML = '';
+            
+            for (let line of lines) {
+                if (line.trim()) {
+                    const runicLine = textToRunes(line);
+                    runicHTML += `<div class="runen-zeile">${runicLine}</div>`;
+                } else {
+                    runicHTML += '<br>';
+                }
+            }
+            
+            return runicHTML;
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // UI CONTROLS
+        // ═══════════════════════════════════════════════════════════════
+        
+        const originalAnsicht = document.getElementById('original-ansicht');
+        const runenAnsicht = document.getElementById('runen-ansicht');
+        const umschaltKnopf = document.getElementById('umschalt-knopf');
+
+        let istOriginalSichtbar = true;
+
+        // Script selector
+        const scriptSelector = document.getElementById('script-selector');
+        
+        function loadScript(scriptKey) {
+            const code = scripts[scriptKey];
+            originalAnsicht.querySelector('pre').textContent = code;
+            const runicCode = convertCodeToRunes(code);
+            runenAnsicht.innerHTML = '<span class="version-label">✨ RUNIC LAYER</span>' + runicCode;
+        }
+        
+        scriptSelector.addEventListener('change', function() {
+            loadScript(this.value);
+        });
+
+        // Auto-convert original code to runes on load
+        window.addEventListener('DOMContentLoaded', function() {
+            loadScript('databases'); // Load default script
+        });
+
+        umschaltKnopf.addEventListener('click', function() {
+            if (istOriginalSichtbar) {
+                // Zur Runen-Version wechseln
+                originalAnsicht.classList.add('versteckt');
+                runenAnsicht.classList.remove('versteckt');
+                umschaltKnopf.textContent = '🔄 Zur Original-Version umschalten';
+                umschaltKnopf.style.background = 'linear-gradient(45deg, #9b59b6, #8e44ad)';
+                istOriginalSichtbar = false;
+            } else {
+                // Zur Original-Version wechseln
+                runenAnsicht.classList.add('versteckt');
+                originalAnsicht.classList.remove('versteckt');
+                umschaltKnopf.textContent = '🔄 Zur Runen-Version umschalten';
+                umschaltKnopf.style.background = 'linear-gradient(45deg, #d4af37, #c99c2e)';
+                istOriginalSichtbar = true;
+            }
+        });
+
+        // Keyboard shortcut (Leertaste)
+        document.addEventListener('keydown', function(event) {
+            if (event.code === 'Space') {
+                event.preventDefault();
+                umschaltKnopf.click();
+            }
+        });
+    </script>
+</body>
+</html>

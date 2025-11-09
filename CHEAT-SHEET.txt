@@ -1,0 +1,246 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                   PROXMOX COMMUNITY SCRIPTS - CHEAT SHEET                   ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+📦 QUICK INSTALL - Die Top 20 Apps
+══════════════════════════════════════════════════════════════════════════════
+
+🐳 DOCKER & CONTAINER MANAGEMENT
+─────────────────────────────────────────────────────────────────────────────
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/ct/docker.sh)"
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/ct/dockge.sh)"
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/ct/komodo.sh)"
+
+🌐 REVERSE PROXY & WEB
+─────────────────────────────────────────────────────────────────────────────
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/ct/nginxproxymanager.sh)"
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/ct/caddy.sh)"
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/ct/traefik.sh)"
+
+🔒 DNS & AD-BLOCKING
+─────────────────────────────────────────────────────────────────────────────
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/ct/pihole.sh)"
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/ct/adguard.sh)"
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/ct/technitiumdns.sh)"
+
+💾 DATENBANKEN
+─────────────────────────────────────────────────────────────────────────────
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/ct/postgresql.sh)"
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/ct/mariadb.sh)"
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/ct/redis.sh)"
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/ct/mongodb.sh)"
+
+📊 MONITORING
+─────────────────────────────────────────────────────────────────────────────
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/ct/grafana.sh)"
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/ct/influxdb.sh)"
+
+☁️ CLOUD & STORAGE
+─────────────────────────────────────────────────────────────────────────────
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/vm/nextcloud-vm.sh)"
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/ct/minio.sh)"
+
+🔐 SECURITY & AUTH
+─────────────────────────────────────────────────────────────────────────────
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/ct/vaultwarden.sh)"
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/ct/authelia.sh)"
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/ct/2fauth.sh)"
+
+💻 DEVELOPMENT
+─────────────────────────────────────────────────────────────────────────────
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/ct/gitea.sh)"
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/tools/addon/coder-code-server.sh)"
+
+🎬 MEDIA MANAGEMENT
+─────────────────────────────────────────────────────────────────────────────
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/ct/radarr.sh)"
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/ct/prowlarr.sh)"
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/ct/overseerr.sh)"
+
+🏠 HOME AUTOMATION
+─────────────────────────────────────────────────────────────────────────────
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/ct/homebridge.sh)"
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/ct/esphome.sh)"
+
+🤖 AI & AUTOMATION
+─────────────────────────────────────────────────────────────────────────────
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/ct/n8n.sh)"
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/ct/openwebui.sh)"
+
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                           INTERAKTIVE INSTALLER                              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+📁 In /tmp/proxmox-scripts/ oder nach Proxmox kopiert:
+
+./12-install-databases.sh           # 12 Datenbank-Optionen
+./13-install-media-stack.sh         # Complete Arr Stack
+./14-install-security-stack.sh      # Security & Auth Stack
+./15-install-homelab-essentials.sh  # 8 vorkonfigurierte Stacks
+
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                          BELIEBTE STACK-KOMBINATIONEN                        ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+🏠 STARTER HOMELAB (Minimal)
+─────────────────────────────────────────────────────────────────────────────
+1. Docker                    # Container Platform
+2. Nginx Proxy Manager       # Reverse Proxy
+3. Pi-hole                   # DNS/Ad-Block
+4. Nextcloud                 # Cloud Storage
+
+🎬 MEDIA SERVER (Plex/Jellyfin Alternative)
+─────────────────────────────────────────────────────────────────────────────
+1. Docker                    # Für Plex/Jellyfin/Emby
+2. Prowlarr                  # Indexer Manager
+3. Radarr                    # Movies
+4. Sonarr                    # TV Shows (separate Installation)
+5. Bazarr                    # Subtitles
+6. Overseerr                 # Request Management
+
+💼 SMALL BUSINESS
+─────────────────────────────────────────────────────────────────────────────
+1. Nextcloud                 # Collaboration
+2. OnlyOffice                # Office Suite (in Nextcloud)
+3. Vaultwarden               # Password Manager
+4. Gitea                     # Code Repository
+5. PostgreSQL                # Database
+6. Nginx Proxy Manager       # SSL/HTTPS
+
+🔒 SECURITY FOCUSED
+─────────────────────────────────────────────────────────────────────────────
+1. Pi-hole                   # DNS Security
+2. Authelia                  # SSO/2FA
+3. Vaultwarden               # Passwords
+4. CrowdSec                  # IPS/IDS
+5. Nginx Proxy Manager       # Web Security
+6. WireGuard                 # VPN (separate)
+
+💻 DEVELOPER ENVIRONMENT
+─────────────────────────────────────────────────────────────────────────────
+1. Docker                    # Containers
+2. Gitea                     # Git Server
+3. Code Server               # VS Code Browser
+4. PostgreSQL                # DB
+5. Redis                     # Cache
+6. Jenkins                   # CI/CD
+
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                            NÜTZLICHE BEFEHLE                                 ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+🔍 CONTAINER MANAGEMENT
+─────────────────────────────────────────────────────────────────────────────
+pct list                              # Alle Container auflisten
+pct start <ID>                        # Container starten
+pct stop <ID>                         # Container stoppen
+pct enter <ID>                        # In Container einloggen
+pct exec <ID> -- bash                 # Befehl in Container ausführen
+
+📦 BACKUP & RESTORE
+─────────────────────────────────────────────────────────────────────────────
+vzdump <ID>                           # Container Backup erstellen
+pct restore <ID> <backup-file>        # Container wiederherstellen
+
+🔄 UPDATES
+─────────────────────────────────────────────────────────────────────────────
+pct exec <ID> -- apt update           # Updates checken
+pct exec <ID> -- apt upgrade -y       # Updates installieren
+
+# Alle Container updaten (Script):
+./05-lxc-updater.sh
+
+📊 MONITORING
+─────────────────────────────────────────────────────────────────────────────
+pct status <ID>                       # Container Status
+pct config <ID>                       # Container Konfiguration anzeigen
+free -h                               # RAM-Auslastung
+df -h                                 # Disk Space
+
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                          RESSOURCEN-EMPFEHLUNGEN                             ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+💾 RAM-ZUWEISUNG (Typische Werte)
+─────────────────────────────────────────────────────────────────────────────
+Pi-hole:             512 MB - 1 GB
+Nginx Proxy Manager: 512 MB - 1 GB
+Vaultwarden:         512 MB - 1 GB
+Docker (klein):      2 GB - 4 GB
+Docker (groß):       8 GB - 16 GB
+Nextcloud:           4 GB - 8 GB
+PostgreSQL:          2 GB - 8 GB
+Grafana:             2 GB - 4 GB
+Plex/Jellyfin:       8 GB - 16 GB
+Home Assistant:      2 GB - 4 GB
+
+💻 CPU-KERNE
+─────────────────────────────────────────────────────────────────────────────
+Leichte Services:    1-2 Kerne
+Standard Apps:       2-4 Kerne
+Heavy Apps:          4-8 Kerne
+
+💾 STORAGE
+─────────────────────────────────────────────────────────────────────────────
+System/Apps:         20-50 GB (SSD empfohlen)
+Datenbank:           50-100 GB (SSD)
+Media Storage:       Variabel (HDD OK)
+
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                        TROUBLESHOOTING QUICK-FIXES                           ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+❌ Container startet nicht
+─────────────────────────────────────────────────────────────────────────────
+pct start <ID>                        # Starten
+journalctl -xe                        # Logs checken
+pct config <ID>                       # Konfiguration prüfen
+
+🌐 App nicht erreichbar
+─────────────────────────────────────────────────────────────────────────────
+pct exec <ID> -- netstat -tulpn       # Ports checken
+pct exec <ID> -- systemctl status <service>  # Service Status
+ping <container-ip>                   # Netzwerk testen
+
+💾 Kein Speicherplatz
+─────────────────────────────────────────────────────────────────────────────
+df -h                                 # Speicher anzeigen
+pct resize <ID> rootfs +10G           # Disk erweitern
+
+🔥 Performance Probleme
+─────────────────────────────────────────────────────────────────────────────
+top                                   # CPU/RAM Live
+htop                                  # Bessere Übersicht
+pct set <ID> -memory 4096             # RAM erhöhen
+pct set <ID> -cores 4                 # CPU Kerne erhöhen
+
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                              WICHTIGE LINKS                                  ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+📚 Dokumentation
+─────────────────────────────────────────────────────────────────────────────
+Community Scripts:   https://github.com/community-scripts/ProxmoxVE
+Proxmox Docs:        https://pve.proxmox.com/pve-docs/
+Proxmox Forum:       https://forum.proxmox.com/
+Helper Scripts:      https://tteck.github.io/Proxmox/
+
+🎯 Diese Dateien
+─────────────────────────────────────────────────────────────────────────────
+Lokaler Pfad:        /tmp/proxmox-scripts/
+Dokumentation:       11-community-scripts-overview.md
+Master Guide:        MASTER-GUIDE.md
+Dieses Cheat Sheet:  CHEAT-SHEET.txt
+
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                        🚀 VIEL ERFOLG MIT PROXMOX! 🚀                       ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+💡 Tipp: Speichere diese Datei auf deinem Proxmox-Server für schnellen Zugriff!
