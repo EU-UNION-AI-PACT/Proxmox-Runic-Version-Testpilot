@@ -1,0 +1,39 @@
+# Runic TestPilot Configuration
+
+# TestPilot Settings
+testpilot:
+  name: "Proxmox Runic TestPilot"
+  version: "1.0.0"
+  description: "A coding framework for Proxmox testing with BackLink support"
+
+# BackLink Configuration
+backlink:
+  enable_bidirectional: true
+  track_dependencies: true
+  auto_reverse_links: true
+  link_types:
+    - depends_on
+    - reverse_depends_on
+    - requires_environment
+    - provides_resource
+    - consumes_resource
+
+# Test Execution Settings
+execution:
+  parallel_execution: false
+  fail_fast: true
+  skip_on_dependency_failure: true
+  max_retries: 3
+
+# Export Settings
+export:
+  format: "json"
+  include_backlinks: true
+  include_metadata: true
+  pretty_print: true
+
+# Logging
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "testpilot.log"
