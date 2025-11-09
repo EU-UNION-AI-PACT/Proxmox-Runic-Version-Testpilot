@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ᚠᚢᚦᚨᚱᚲ - Proxmox Runic Interactive Dashboard</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Runic&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-gold: #d4af37;
+            --secondary-gold: #c99c2e;
+            --dark-bg: #1a1a2e;
+            --darker-bg: #16213e;
+            --accent-blue: #0f3460;
+            --text-light: #e4e4e4;
+            --text-muted: #a0a0a0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--dark-bg) 0%, var(--darker-bg) 100%);
+            color: var(--text-light);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+
+        h1 {
+            font-size: 3.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, var(--primary-gold), #f4e4c1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-family: 'Noto Sans Runic', sans-serif;
+            text-shadow: 0 0 30px rgba(212, 175, 55, 0.5);
+            animation: glow 3s ease-in-out infinite;
+        }
+
+        @keyframes glow {
+            0%, 100% { filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.3)); }
+            50% { filter: drop-shadow(0 0 20px rgba(212, 175, 55, 0.6)); }
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 1.2em;
+            margin-top: 10px;
+        }
+
+        .nav-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .nav-btn {
+            padding: 15px 25px;
+            font-size: 1.1em;
+            border: 2px solid var(--primary-gold);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.1), rgba(201, 156, 46, 0.1));
+            color: var(--primary-gold);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(212, 175, 55, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .nav-btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .nav-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px 0 rgba(212, 175, 55, 0.5);
+            border-color: #f4e4c1;
+        }
+
+        .nav-btn.active {
+            background: linear-gradient(45deg, var(--primary-gold), var(--secondary-gold));
+            color: var(--dark-bg);
+            border-color: transparent;
+        }
+
+        .module-section {
+            display: none;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .module-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px 0 rgba(212, 175, 55, 0.4);
+        }
+
+        .card-title {
+            font-size: 1.8em;
+            margin-bottom: 15px;
+            color: var(--primary-gold);
+            font-family: 'Fira Code', monospace;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, rgba(15, 52, 96, 0.4), rgba(22, 33, 62, 0.4));
+            padding: 20px;
+            border-radius: 12px;
+            border-left: 4px solid var(--primary-gold);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            border-left-width: 8px;
+            transform: translateX(5px);
+        }
+
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: var(--primary-gold);
+            font-family: 'Fira Code', monospace;
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            margin-top: 5px;
+            font-size: 0.9em;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin: 20px 0;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            border-radius: 12px;
+        }
+
+        .script-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+        }
+
+        .script-item {
+            background: rgba(212, 175, 55, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 3px solid var(--primary-gold);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .script-item:hover {
+            background: rgba(212, 175, 55, 0.2);
+            transform: translateX(5px);
+        }
+
+        .script-name {
+            font-weight: 600;
+            color: var(--primary-gold);
+            margin-bottom: 5px;
+            font-family: 'Fira Code', monospace;
+        }
+
+        .script-desc {
+            font-size: 0.9em;
+            color: var(--text-muted);
+        }
+
+        .action-button {
+            padding: 10px 20px;
+            background: linear-gradient(45deg, var(--primary-gold), var(--secondary-gold));
+            color: var(--dark-bg);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+
+        .action-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(212, 175, 55, 0.5);
+        }
+
+        .action-button.secondary {
+            background: linear-gradient(135deg, rgba(15, 52, 96, 0.6), rgba(22, 33, 62, 0.6));
+            color: var(--primary-gold);
+            border: 2px solid var(--primary-gold);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-gold), var(--secondary-gold));
+            transition: width 1s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--dark-bg);
+            font-weight: 600;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.1);
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--primary-gold);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        .runic-text {
+            font-family: 'Noto Sans Runic', sans-serif;
+            color: var(--primary-gold);
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            background-color: rgba(0, 0, 0, 0.9);
+            color: var(--primary-gold);
+            text-align: center;
+            border-radius: 6px;
+            padding: 10px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            border: 1px solid var(--primary-gold);
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <div class="header">
+            <h1>ᚠᚢᚦᚨᚱᚲ</h1>
+            <p class="subtitle">Proxmox Runic Interactive Dashboard & Script Manager</p>
+            <p class="subtitle">🔮 Interaktive Steuerung · 📊 Live Statistiken · ⚡ Automatisierung</p>
+        </div>
+
+        <div class="nav-buttons">
+            <button class="nav-btn active" onclick="showModule('overview')">📊 Übersicht</button>
+            <button class="nav-btn" onclick="showModule('scripts')">📜 Skripte</button>
+            <button class="nav-btn" onclick="showModule('monitoring')">📈 Monitoring</button>
+            <button class="nav-btn" onclick="showModule('network')">🌐 Netzwerk</button>
+            <button class="nav-btn" onclick="showModule('storage')">💾 Speicher</button>
+            <button class="nav-btn" onclick="showModule('automation')">⚙️ Automation</button>
+        </div>
+
+        <!-- Overview Module -->
+        <div id="overview" class="module-section active">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="scriptCount">15</div>
+                    <div class="stat-label">Verfügbare Skripte</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="containerCount">0</div>
+                    <div class="stat-label">LXC Container</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="vmCount">0</div>
+                    <div class="stat-label">Virtuelle Maschinen</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">100%</div>
+                    <div class="stat-label">System Health</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2 class="card-title">📊 Projekt Statistiken</h2>
+                <div class="chart-container">
+                    <canvas id="overviewChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2 class="card-title">🚀 Quick Actions</h2>
+                <button class="action-button" onclick="runSetup()">▶️ Setup Starten</button>
+                <button class="action-button" onclick="updateAll()">🔄 Alles Aktualisieren</button>
+                <button class="action-button secondary" onclick="showLogs()">�� Logs Anzeigen</button>
+                <button class="action-button secondary" onclick="exportConfig()">💾 Config Exportieren</button>
+            </div>
+        </div>
+
+        <!-- Scripts Module -->
+        <div id="scripts" class="module-section">
+            <div class="card">
+                <h2 class="card-title">📜 Verfügbare Skripte</h2>
+                <div class="script-list">
+                    <div class="script-item" onclick="showScriptDetails('proxmenux')">
+                        <div class="script-name">01-proxmenux-install.sh</div>
+                        <div class="script-desc">ProxmenuX Installation - Erweiterte Menüsteuerung</div>
+                    </div>
+                    <div class="script-item" onclick="showScriptDetails('post')">
+                        <div class="script-name">02-post-install.sh</div>
+                        <div class="script-desc">Post-Installation Konfiguration</div>
+                    </div>
+                    <div class="script-item" onclick="showScriptDetails('kernel')">
+                        <div class="script-name">03-kernel-clean.sh</div>
+                        <div class="script-desc">Kernel Cleanup & Optimierung</div>
+                    </div>
+                    <div class="script-item" onclick="showScriptDetails('backup')">
+                        <div class="script-name">04-host-backup.sh</div>
+                        <div class="script-desc">Automatisches Host Backup</div>
+                    </div>
+                    <div class="script-item" onclick="showScriptDetails('updater')">
+                        <div class="script-name">05-lxc-updater.sh</div>
+                        <div class="script-desc">LXC Container Update Manager</div>
+                    </div>
+                    <div class="script-item" onclick="showScriptDetails('containers')">
+                        <div class="script-name">06-container-examples.sh</div>
+                        <div class="script-desc">Container Deployment Beispiele</div>
+                    </div>
+                    <div class="script-item" onclick="showScriptDetails('vms')">
+                        <div class="script-name">07-vm-examples.sh</div>
+                        <div class="script-desc">VM Deployment Beispiele</div>
+                    </div>
+                    <div class="script-item" onclick="showScriptDetails('monitoring')">
+                        <div class="script-name">08-monitoring-setup.sh</div>
+                        <div class="script-desc">Monitoring Stack (Prometheus, Grafana)</div>
+                    </div>
+                    <div class="script-item" onclick="showScriptDetails('network')">
+                        <div class="script-name">09-network-config.sh</div>
+                        <div class="script-desc">Erweiterte Netzwerkkonfiguration</div>
+                    </div>
+                    <div class="script-item" onclick="showScriptDetails('storage')">
+                        <div class="script-name">10-storage-config.sh</div>
+                        <div class="script-desc">Storage Management & ZFS</div>
+                    </div>
+                    <div class="script-item" onclick="showScriptDetails('databases')">
+                        <div class="script-name">12-install-databases.sh</div>
+                        <div class="script-desc">Datenbank Stack (PostgreSQL, MySQL, Redis)</div>
+                    </div>
+                    <div class="script-item" onclick="showScriptDetails('media')">
+                        <div class="script-name">13-install-media-stack.sh</div>
+                        <div class="script-desc">Media Server Stack (Plex, Jellyfin)</div>
+                    </div>
+                    <div class="script-item" onclick="showScriptDetails('security')">
+                        <div class="script-name">14-install-security-stack.sh</div>
+                        <div class="script-desc">Security Tools (Vault, Firewall)</div>
+                    </div>
+                    <div class="script-item" onclick="showScriptDetails('homelab')">
+                        <div class="script-name">15-install-homelab-essentials.sh</div>
+                        <div class="script-desc">Homelab Essentials (Pi-hole, Portainer)</div>
+                    </div>
+                    <div class="script-item" onclick="showScriptDetails('interactive')">
+                        <div class="script-name">interactive-setup.sh</div>
+                        <div class="script-desc">Interaktiver Gesamt-Setup Assistent</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Monitoring Module -->
+        <div id="monitoring" class="module-section">
+            <div class="card">
+                <h2 class="card-title">📈 System Monitoring</h2>
+                <div class="chart-container">
+                    <canvas id="performanceChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2 class="card-title">🔄 Resource Usage</h2>
+                <div style="margin: 20px 0;">
+                    <h3 style="color: var(--primary-gold); margin-bottom: 10px;">CPU Usage</h3>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="cpuProgress" style="width: 45%">45%</div>
+                    </div>
+                </div>
+                <div style="margin: 20px 0;">
+                    <h3 style="color: var(--primary-gold); margin-bottom: 10px;">Memory Usage</h3>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="memProgress" style="width: 62%">62%</div>
+                    </div>
+                </div>
+                <div style="margin: 20px 0;">
+                    <h3 style="color: var(--primary-gold); margin-bottom: 10px;">Storage Usage</h3>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="storageProgress" style="width: 38%">38%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Network Module -->
+        <div id="network" class="module-section">
+            <div class="card">
+                <h2 class="card-title">🌐 Netzwerk Konfiguration</h2>
+                <div class="chart-container">
+                    <canvas id="networkChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2 class="card-title">⚙️ Netzwerk Features</h2>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                    <div>
+                        <h3 style="color: var(--primary-gold); margin-bottom: 10px;">VLAN Support</h3>
+                        <label class="toggle-switch">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div>
+                        <h3 style="color: var(--primary-gold); margin-bottom: 10px;">Bridge Networking</h3>
+                        <label class="toggle-switch">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div>
+                        <h3 style="color: var(--primary-gold); margin-bottom: 10px;">IPv6</h3>
+                        <label class="toggle-switch">
+                            <input type="checkbox">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Storage Module -->
+        <div id="storage" class="module-section">
+            <div class="card">
+                <h2 class="card-title">💾 Storage Overview</h2>
+                <div class="chart-container">
+                    <canvas id="storageChart"></canvas>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value">2.5 TB</div>
+                    <div class="stat-label">Gesamt Speicher</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">950 GB</div>
+                    <div class="stat-label">Verwendet</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">1.55 TB</div>
+                    <div class="stat-label">Verfügbar</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">ZFS</div>
+                    <div class="stat-label">Dateisystem</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Automation Module -->
+        <div id="automation" class="module-section">
+            <div class="card">
+                <h2 class="card-title">⚙️ Automation Pipeline</h2>
+                <div class="chart-container">
+                    <canvas id="automationChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2 class="card-title">🤖 Geplante Tasks</h2>
+                <div class="script-list">
+                    <div class="script-item">
+                        <div class="script-name">Tägliches Backup</div>
+                        <div class="script-desc">Jeden Tag um 02:00 Uhr</div>
+                    </div>
+                    <div class="script-item">
+                        <div class="script-name">System Updates</div>
+                        <div class="script-desc">Jeden Sonntag um 03:00 Uhr</div>
+                    </div>
+                    <div class="script-item">
+                        <div class="script-name">Log Rotation</div>
+                        <div class="script-desc">Wöchentlich</div>
+                    </div>
+                    <div class="script-item">
+                        <div class="script-name">Health Check</div>
+                        <div class="script-desc">Stündlich</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Module Navigation
+        function showModule(moduleName) {
+            // Hide all modules
+            document.querySelectorAll('.module-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Remove active class from all buttons
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected module
+            document.getElementById(moduleName).classList.add('active');
+            
+            // Add active class to clicked button
+            event.target.classList.add('active');
+            
+            // Initialize charts for the selected module
+            initializeCharts(moduleName);
+        }
+
+        // Initialize Charts
+        function initializeCharts(module) {
+            const chartConfig = {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: '#e4e4e4'
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        ticks: { color: '#a0a0a0' },
+                        grid: { color: 'rgba(212, 175, 55, 0.1)' }
+                    },
+                    x: {
+                        ticks: { color: '#a0a0a0' },
+                        grid: { color: 'rgba(212, 175, 55, 0.1)' }
+                    }
+                }
+            };
+
+            if (module === 'overview') {
+                const ctx = document.getElementById('overviewChart');
+                if (ctx && !ctx.chart) {
+                    ctx.chart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: ['Setup', 'Container', 'VMs', 'Monitoring', 'Network', 'Storage'],
+                            datasets: [{
+                                label: 'Skript Kategorien',
+                                data: [3, 2, 2, 1, 1, 1],
+                                backgroundColor: 'rgba(212, 175, 55, 0.6)',
+                                borderColor: 'rgba(212, 175, 55, 1)',
+                                borderWidth: 2
+                            }]
+                        },
+                        options: chartConfig
+                    });
+                }
+            } else if (module === 'monitoring') {
+                const ctx = document.getElementById('performanceChart');
+                if (ctx && !ctx.chart) {
+                    ctx.chart = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
+                            datasets: [{
+                                label: 'CPU %',
+                                data: [30, 45, 60, 55, 40, 45],
+                                borderColor: 'rgba(212, 175, 55, 1)',
+                                backgroundColor: 'rgba(212, 175, 55, 0.1)',
+                                tension: 0.4
+                            }, {
+                                label: 'Memory %',
+                                data: [50, 55, 62, 58, 60, 62],
+                                borderColor: 'rgba(15, 52, 96, 1)',
+                                backgroundColor: 'rgba(15, 52, 96, 0.1)',
+                                tension: 0.4
+                            }]
+                        },
+                        options: chartConfig
+                    });
+                }
+            } else if (module === 'network') {
+                const ctx = document.getElementById('networkChart');
+                if (ctx && !ctx.chart) {
+                    ctx.chart = new Chart(ctx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['LAN Traffic', 'WAN Traffic', 'Internal', 'External'],
+                            datasets: [{
+                                data: [45, 25, 20, 10],
+                                backgroundColor: [
+                                    'rgba(212, 175, 55, 0.8)',
+                                    'rgba(15, 52, 96, 0.8)',
+                                    'rgba(22, 33, 62, 0.8)',
+                                    'rgba(160, 160, 160, 0.8)'
+                                ]
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: {
+                                    labels: {
+                                        color: '#e4e4e4'
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            } else if (module === 'storage') {
+                const ctx = document.getElementById('storageChart');
+                if (ctx && !ctx.chart) {
+                    ctx.chart = new Chart(ctx, {
+                        type: 'polarArea',
+                        data: {
+                            labels: ['Backups', 'VMs', 'Containers', 'ISOs', 'Templates'],
+                            datasets: [{
+                                data: [400, 300, 150, 50, 50],
+                                backgroundColor: [
+                                    'rgba(212, 175, 55, 0.6)',
+                                    'rgba(15, 52, 96, 0.6)',
+                                    'rgba(22, 33, 62, 0.6)',
+                                    'rgba(160, 160, 160, 0.6)',
+                                    'rgba(244, 228, 193, 0.6)'
+                                ]
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: {
+                                    labels: {
+                                        color: '#e4e4e4'
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            } else if (module === 'automation') {
+                const ctx = document.getElementById('automationChart');
+                if (ctx && !ctx.chart) {
+                    ctx.chart = new Chart(ctx, {
+                        type: 'radar',
+                        data: {
+                            labels: ['Backups', 'Updates', 'Monitoring', 'Cleanup', 'Security', 'Optimization'],
+                            datasets: [{
+                                label: 'Automation Coverage',
+                                data: [90, 75, 85, 70, 80, 65],
+                                backgroundColor: 'rgba(212, 175, 55, 0.2)',
+                                borderColor: 'rgba(212, 175, 55, 1)',
+                                pointBackgroundColor: 'rgba(212, 175, 55, 1)'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            scales: {
+                                r: {
+                                    ticks: { color: '#a0a0a0' },
+                                    grid: { color: 'rgba(212, 175, 55, 0.2)' },
+                                    pointLabels: { color: '#e4e4e4' }
+                                }
+                            },
+                            plugins: {
+                                legend: {
+                                    labels: {
+                                        color: '#e4e4e4'
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+        }
+
+        // Action Functions
+        function runSetup() {
+            alert('🚀 Setup wird gestartet...\n\nDies würde normalerweise das interactive-setup.sh Skript ausführen.');
+        }
+
+        function updateAll() {
+            alert('🔄 Aktualisierung gestartet...\n\nAlle Container und VMs werden aktualisiert.');
+        }
+
+        function showLogs() {
+            alert('📋 Logs werden geladen...\n\nLog-Viewer würde hier geöffnet werden.');
+        }
+
+        function exportConfig() {
+            alert('💾 Konfiguration wird exportiert...\n\nConfig-Dateien werden gespeichert.');
+        }
+
+        function showScriptDetails(scriptName) {
+            alert(`📜 Skript Details: ${scriptName}\n\nHier würden Details und Ausführungsoptionen angezeigt.`);
+        }
+
+        // Simulate real-time updates
+        function updateStats() {
+            const cpuProgress = document.getElementById('cpuProgress');
+            const memProgress = document.getElementById('memProgress');
+            const storageProgress = document.getElementById('storageProgress');
+            
+            setInterval(() => {
+                const cpu = Math.floor(Math.random() * 30) + 30;
+                const mem = Math.floor(Math.random() * 20) + 50;
+                const storage = Math.floor(Math.random() * 10) + 35;
+                
+                cpuProgress.style.width = cpu + '%';
+                cpuProgress.textContent = cpu + '%';
+                memProgress.style.width = mem + '%';
+                memProgress.textContent = mem + '%';
+                storageProgress.style.width = storage + '%';
+                storageProgress.textContent = storage + '%';
+            }, 3000);
+        }
+
+        // Initialize on load
+        window.addEventListener('load', () => {
+            initializeCharts('overview');
+            updateStats();
+        });
+    </script>
+</body>
+</html>
